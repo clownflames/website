@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/icons";
 import { Field, TextInput } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button-link";
@@ -11,7 +12,6 @@ import { authClient } from "@/lib/auth-client";
 function useAuthSubmit() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
 
   function finish(next: string) {
     const target = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
@@ -19,26 +19,26 @@ function useAuthSubmit() {
     router.refresh();
   }
 
-  return { pending, setPending, error, setError, finish };
+  return { pending, setPending, finish };
 }
 
 export function SignInForm({ next = "/dashboard" }: { next?: string }) {
-  const { pending, setPending, error, setError, finish } = useAuthSubmit();
+  const { pending, setPending, finish } = useAuthSubmit();
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setPending(true);
-    setError("");
     const { error: authError } = await authClient.signIn.email({
       email: String(form.get("email") ?? ""),
       password: String(form.get("password") ?? ""),
     });
     if (authError) {
-      setError(authError.message ?? "Those details did not match an account.");
+      toast.error(authError.message ?? "Those details did not match an account.");
       setPending(false);
       return;
     }
+    toast.success("Signed in. Welcome back.");
     finish(next);
   }
 
@@ -50,12 +50,6 @@ export function SignInForm({ next = "/dashboard" }: { next?: string }) {
       <Field label="Password" required>
         <TextInput autoComplete="current-password" name="password" placeholder="Your password" required type="password" />
       </Field>
-
-      {error ? (
-        <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs leading-5 text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <button className={buttonClass("dark", "lg", "w-full")} disabled={pending} type="submit">
         {pending ? "Signing in…" : "Sign in"}
@@ -73,7 +67,7 @@ export function SignInForm({ next = "/dashboard" }: { next?: string }) {
 }
 
 export function SignUpForm({ next = "/dashboard" }: { next?: string }) {
-  const { pending, setPending, error, setError, finish } = useAuthSubmit();
+  const { pending, setPending, finish } = useAuthSubmit();
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,26 +76,26 @@ export function SignUpForm({ next = "/dashboard" }: { next?: string }) {
     const confirm = String(form.get("confirmPassword") ?? "");
 
     if (password.length < 8) {
-      setError("Use at least 8 characters for your password.");
+      toast.error("Use at least 8 characters for your password.");
       return;
     }
     if (password !== confirm) {
-      setError("The two passwords do not match.");
+      toast.error("The two passwords do not match.");
       return;
     }
 
     setPending(true);
-    setError("");
     const { error: authError } = await authClient.signUp.email({
       name: String(form.get("name") ?? ""),
       email: String(form.get("email") ?? ""),
       password,
     });
     if (authError) {
-      setError(authError.message ?? "We could not create your account.");
+      toast.error(authError.message ?? "We could not create your account.");
       setPending(false);
       return;
     }
+    toast.success("Account created. Welcome to Erstian.");
     finish(next);
   }
 
@@ -119,12 +113,6 @@ export function SignUpForm({ next = "/dashboard" }: { next?: string }) {
       <Field label="Confirm password" required>
         <TextInput autoComplete="new-password" name="confirmPassword" placeholder="Repeat password" required type="password" />
       </Field>
-
-      {error ? (
-        <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs leading-5 text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <button className={buttonClass("primary", "lg", "w-full")} disabled={pending} type="submit">
         {pending ? "Creating account…" : "Create free account"}

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/icons";
 import { Field, Select, TextArea, TextInput } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button-link";
 import { services } from "@/lib/content";
 
-type Status = "idle" | "sending" | "done" | "error";
+type Status = "idle" | "sending" | "done";
 
 export function AuditForm({
   defaultName = "",
@@ -19,7 +20,6 @@ export function AuditForm({
   signedIn?: boolean;
 }) {
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState("");
   const [reference, setReference] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
 
@@ -28,7 +28,6 @@ export function AuditForm({
     const form = event.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
     setStatus("sending");
-    setError("");
     try {
       const response = await fetch("/api/audits", {
         method: "POST",
@@ -41,9 +40,10 @@ export function AuditForm({
       setReference(data.id ? data.id.slice(0, 8).toUpperCase() : "");
       setStatus("done");
       form.reset();
+      toast.success("Website received. Your audit lands within 48 hours.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
-      setStatus("error");
+      setStatus("idle");
+      toast.error(submitError instanceof Error ? submitError.message : "Something went wrong. Please try again.");
     }
   }
 
@@ -136,12 +136,6 @@ export function AuditForm({
           />
         </Field>
       </div>
-
-      {status === "error" ? (
-        <p className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button className={buttonClass("primary", "lg")} disabled={status === "sending"} type="submit">

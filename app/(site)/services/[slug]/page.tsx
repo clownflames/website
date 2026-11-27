@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { CtaBand } from "@/components/site/cta-band";
+import { ServiceEnquiryDialog } from "@/components/site/enquiry-dialog";
 import { ButtonLink } from "@/components/ui/button-link";
 import { services } from "@/lib/content";
 
@@ -69,6 +70,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<Pa
                 <Icon name="arrow-up-right" size={16} />
               </ButtonLink>
               <p className="mt-3 text-center text-[0.68rem] text-paper/35">Free · reply within 48 hours</p>
+              <ServiceEnquiryDialog
+                className="mt-2 w-full text-paper/55 hover:bg-white/5 hover:text-paper"
+                items={service.items}
+                label="Or request a proposal"
+                serviceTitle={service.title}
+                size="sm"
+                variant="ghost"
+              />
             </div>
           </div>
         </div>
@@ -114,10 +123,20 @@ export default async function ServiceDetailPage({ params }: { params: Promise<Pa
                 so the scope fits your business instead of a fixed package.
               </p>
             </div>
-            <ButtonLink className="mt-5 w-full" href="/contact" variant="dark">
-              Request a proposal
-              <Icon name="arrow-up-right" size={16} />
-            </ButtonLink>
+            <div className="mt-5 space-y-2">
+              <ServiceEnquiryDialog
+                className="w-full"
+                intro="Pick what you need and we will reply with scope, timeline and pricing."
+                items={service.items}
+                label="Request a proposal"
+                serviceTitle={service.title}
+                variant="dark"
+              />
+              <p className="flex items-center justify-center gap-1.5 text-[0.67rem] text-ink/40">
+                <Icon name="clock" size={12} />
+                Reply within one working day
+              </p>
+            </div>
           </aside>
         </div>
       </section>

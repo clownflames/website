@@ -1,20 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/icons";
 import { Field, Select, TextArea, TextInput } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button-link";
 
 export function ReviewForm() {
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
     setStatus("sending");
-    setError("");
     try {
       const response = await fetch("/api/reviews", {
         method: "POST",
@@ -25,9 +24,10 @@ export function ReviewForm() {
       if (!response.ok) throw new Error(data.error ?? "We could not submit your review.");
       setStatus("done");
       form.reset();
+      toast.success("Review submitted. It appears once the team verifies it.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
-      setStatus("error");
+      setStatus("idle");
+      toast.error(submitError instanceof Error ? submitError.message : "Something went wrong. Please try again.");
     }
   }
 
@@ -73,11 +73,6 @@ export function ReviewForm() {
           <TextArea name="message" placeholder="What did we build, and what changed for your business?" required rows={4} />
         </Field>
       </div>
-      {status === "error" ? (
-        <p className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
       <button className={buttonClass("dark", "lg", "mt-6")} disabled={status === "sending"} type="submit">
         {status === "sending" ? "Submitting…" : "Submit review"}
         <Icon name="arrow-up-right" size={16} />

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { CtaBand } from "@/components/site/cta-band";
+import { ServiceEnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SectionHeading } from "@/components/site/section-heading";
 import { ButtonLink } from "@/components/ui/button-link";
 import { services } from "@/lib/content";
@@ -97,15 +98,23 @@ export default function ServicesPage() {
                   ))}
                 </ul>
 
-                <Link
-                  className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand"
-                  href={"/services/" + service.slug}
-                >
-                  Explore {service.title.split(" & ")[0]}
-                  <span className="grid size-7 place-items-center rounded-full border border-line">
-                    <Icon name="arrow-up-right" size={14} />
-                  </span>
-                </Link>
+                <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+                  <ServiceEnquiryDialog
+                    items={service.items}
+                    label="Get started"
+                    serviceTitle={service.title}
+                    variant="dark"
+                  />
+                  <Link
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand"
+                    href={"/services/" + service.slug}
+                  >
+                    Explore {service.title.split(" & ")[0]}
+                    <span className="grid size-7 place-items-center rounded-full border border-line">
+                      <Icon name="arrow-up-right" size={14} />
+                    </span>
+                  </Link>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-line bg-white p-6 sm:p-7">

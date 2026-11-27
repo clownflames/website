@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/icons";
 import { Field, Select, TextArea, TextInput } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button-link";
 import { services } from "@/lib/content";
 
 export function ContactForm({ defaultName = "", defaultEmail = "" }: { defaultName?: string; defaultEmail?: string }) {
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
     setStatus("sending");
-    setError("");
     try {
       const response = await fetch("/api/contacts", {
         method: "POST",
@@ -26,9 +25,10 @@ export function ContactForm({ defaultName = "", defaultEmail = "" }: { defaultNa
       if (!response.ok) throw new Error(data.error ?? "We could not send your message.");
       setStatus("done");
       form.reset();
+      toast.success("Message sent. A strategist will reply within one working day.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
-      setStatus("error");
+      setStatus("idle");
+      toast.error(submitError instanceof Error ? submitError.message : "Something went wrong. Please try again.");
     }
   }
 
@@ -87,12 +87,6 @@ export function ContactForm({ defaultName = "", defaultEmail = "" }: { defaultNa
           <TextArea name="message" placeholder="What are you trying to achieve? What is not working today?" required rows={5} />
         </Field>
       </div>
-
-      {status === "error" ? (
-        <p className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button className={buttonClass("dark", "lg")} disabled={status === "sending"} type="submit">

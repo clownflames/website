@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icon } from "@/components/icons";
 import { Field, Select, TextArea, TextInput } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button-link";
@@ -9,15 +10,13 @@ import { services } from "@/lib/content";
 const slots = ["10:00 – 11:00", "11:30 – 12:30", "14:00 – 15:00", "16:00 – 17:00", "17:30 – 18:30"];
 
 export function BookingForm({ defaultName = "", defaultEmail = "" }: { defaultName?: string; defaultEmail?: string }) {
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
     setStatus("sending");
-    setError("");
     try {
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -28,9 +27,10 @@ export function BookingForm({ defaultName = "", defaultEmail = "" }: { defaultNa
       if (!response.ok) throw new Error(data.error ?? "We could not book that slot.");
       setStatus("done");
       form.reset();
+      toast.success("Slot requested. Confirmation lands within one working day.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
-      setStatus("error");
+      setStatus("idle");
+      toast.error(submitError instanceof Error ? submitError.message : "Something went wrong. Please try again.");
     }
   }
 
@@ -93,12 +93,6 @@ export function BookingForm({ defaultName = "", defaultEmail = "" }: { defaultNa
           <TextArea name="message" placeholder="A quick line about your business and what you want to fix." rows={3} />
         </Field>
       </div>
-
-      {status === "error" ? (
-        <p className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button className={buttonClass("primary", "lg")} disabled={status === "sending"} type="submit">
